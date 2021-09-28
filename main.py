@@ -5,13 +5,10 @@ from sqlalchemy import create_engine
 from typefilter import typefilter
 from sortdate import sortdate
 from searchengine import search
-
+from csvtosql import csvtosql
 
 engine = create_engine(dbconn())
-if not engine.has_table('netflixlist'):
-    sheet = pandas.read_csv('netflix.csv', keep_default_na=False)  # There are 6234 entries in this list
-    sheet.index.name = 'id'
-    sheet.to_sql('netflixlist', con=engine, if_exists='replace')
+csvtosql(engine)  # Check for table, if doesn't exist, write a new one
 usertype = 0  # user input. 0 = No filter, 1 = Movie, 2 = TV Show
 mlist = typefilter(engine, usertype)  # Filtering by type
 userdate = 0  # user input. 0 = unsorted, 1 = condescending, 2 = ascending

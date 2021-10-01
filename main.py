@@ -1,15 +1,17 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_login import LoginManager, login_required, logout_user, current_user, login_user
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from config import dbconn, skey
 from sqlalchemy import create_engine
 from typefilter import typefilter
 from sortdate import sortdate
 from searchengine import search
 from csvtosql import csvtosql
-from user import User, getuser
+from user import User, getuser, adduser
 
 engine = create_engine(dbconn())
+engine.execute("DROP TABLE users")
+i = 1;
 csvtosql(engine)  # Check for both users and movielist table, if doesn't exist, write a new one
 #usertype = 0  # user input. 0 = No filter, 1 = Movie, 2 = TV Show.
 #mlist = typefilter(engine, usertype)  # Filtering by type and forming the list for further manipulations
@@ -28,6 +30,7 @@ login_manager = LoginManager()
 SECRET_KEY = skey()
 app = Flask(__name__)
 login_manager.init_app(app)
+login_manager.login_view('login')
 @login_manager.user_loader
 def load_user(user_id):
     return User.getdb(user_id)
@@ -55,28 +58,36 @@ def filter():
     else:
         return render_template("home.html", mlist=mlist)
 @app.route("/profile") #add /username later, if no session redirect to login
+@login_required
 def profile():
-    if current_user.is_authenticated:
-        return render_template("profile.html")
+    print("openprof")
+    return render_template("profile.html")
 @app.route("/logout")
+@login_required
 def logout():
     if current_user.is_authenticated:
         logout_user()
         return redirect(url_for('login'))
-@app.route("/profile/login")
+    return redirect(url_for('login'))
+@app.route("/profile/login", methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('profile'))
     if request.method == "POST":
-        user = getuser(request.form.get('inputfield'), engine)
+        user = getuser(request.form.get('nickname'), engine)
         if user and check_password_hash(user[3], request.form.get('password')):
             userlogin = User().create(user)
             remain = True if request.form.get('remain') == 'on' else False
             login_user(userlogin, remember=remain)
+            print(current_user.is_authenticated)
             return redirect(url_for('profile'))
     return render_template("login.html")
-@app.route("/profile/register")
+@app.route("/profile/register", methods=['GET', 'POST'])
 def register():
+    if request.method == "POST":
+        phash = generate_password_hash(request.form.get('password'))
+        if adduser(request.form.get('nickname'), request.form.get('email'), phash, engine, i):
+            return redirect(url_for('login'))
     return render_template("register.html")
 @app.route("/contact")
 def contact():

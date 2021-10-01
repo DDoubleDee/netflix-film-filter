@@ -1,22 +1,22 @@
 def search(sortedlist, usersearch, usersearchtitleon, usersearchcountryon, usersearchgenreon, usersearchactoron, usersearchdescon):
     searchlist = []
-    if usersearchtitleon:
+    if usersearchtitleon == 'on':
         for movie in sortedlist:
             if usersearch.lower() in movie[3].lower():
                 searchlist.append(movie)
-    if usersearchcountryon:
+    if usersearchcountryon == 'on':
         for movie in sortedlist:
             if usersearch.lower() in movie[6].lower():
                 searchlist.append(movie)
-    if usersearchgenreon:
+    if usersearchgenreon == 'on':
         for movie in sortedlist:
             if usersearch.lower() in movie[11].lower():
                 searchlist.append(movie)
-    if usersearchactoron:
+    if usersearchactoron == 'on':
         for movie in sortedlist:
             if usersearch.lower() in movie[5].lower():
                 searchlist.append(movie)
-    if usersearchdescon:
+    if usersearchdescon == 'on':
         for movie in sortedlist:
             if usersearch.lower() in movie[12].lower():
                 searchlist.append(movie)
